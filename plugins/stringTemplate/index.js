@@ -3,6 +3,8 @@
   */
 var ejs  = require('ejs');
 var express = require('express');
+// var querystring = require('querystring'); dont use querystring, bugs there
+var url = require('url')
 
 exports.initWebApp = function(options) {
 };
@@ -10,13 +12,12 @@ exports.initWebApp = function(options) {
 exports.initMonitor = function(options) {
   options.monitor.on('pollerCreated', function(poller, check, details) {
     if (check.type !== 'http' && check.type !== 'https') return;
-    var options = check.pollerParams && check.pollerParams.http_options;
-    if (!options) return;
-    // add the custom options to the poller target
-    for (var key in options) {
-      poller.target.href = ejs.render(poller.target.href);
+    poller.target = url.parse(ejs.render(unescape(poller.target.href)));
+
+    var pattern = check.pollerParams && check.pollerParams.match;
+    if (pattern) {
+        check.pollerParams.match = ejs.render(check.pollerParams.match);
     }
-    return;
   });
 
 };
